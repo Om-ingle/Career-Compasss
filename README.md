@@ -6,19 +6,44 @@ A microservices-based career guidance platform that analyzes financial data and 
 
 ```
 careercompass-services/
-├── ai-agent/               # AI-powered career analysis service
-│   ├── main.py            # FastAPI application
-│   ├── requirements.txt   # Python dependencies
-│   ├── Dockerfile         # Container configuration
-│   └── .env              # Environment variables
-├── mock-data-api/         # Mock financial data service
-│   ├── index.js          # Express application
-│   ├── package.json      # Node.js dependencies
-│   ├── Dockerfile        # Container configuration
-│   └── .env             # Environment variables (if needed)
-├── careercompass-deployment.yaml  # Kubernetes deployment
-└── test-integration.py           # Integration test suite
+├── ai-agent/                 # AI-powered career analysis service (FastAPI, Python)
+│   ├── main.py              # Main FastAPI application
+│   ├── requirements.txt     # Python dependencies
+│   ├── Dockerfile           # Container setup for AI agent
+│   └── .env                 # Environment variables for AI service
+├── mock-data-api/           # Mock financial data API (Express, Node.js)
+│   ├── index.js             # Main Express app
+│   ├── package.json         # Node.js dependencies
+│   ├── Dockerfile           # Container setup for mock API
+│   └── .env                 # Environment variables for mock API
+├── test-integration.py      # Integration test suite for both services
+├── test-dashboard.html      # Simple web UI for manual testing
+├── careercompass-deployment.yaml # Kubernetes deployment manifest
+├── start-local.ps1          # PowerShell script to run both services locally
+└── FREE-DEPLOYMENT-GUIDE.md # Free deployment instructions for cloud providers
 ```
+## 🏗️ System Architecture
+
+```mermaid
+flowchart LR
+    subgraph User
+        A[User (Frontend UI or Test Dashboard)]
+    end
+    subgraph Backend
+        B[AI Agent Service<br/>(Python FastAPI)]
+        C[Mock Data API<br/>(Node.js Express)]
+    end
+
+    A -- "GET /api/users, /api/users/:id/financial-data" --> C
+    A -- "POST /api/analyze-career" --> B
+    B -- "GET /api/users/:id/financial-data" --> C
+    B -- "Career Recommendation (AI/Gemini)" --> A
+    C -- "Financial Data" --> B
+```
+**Description:**
+- The user (through a frontend or test dashboard) interacts with both the Mock Data API (for test user/financial data) and the AI Agent (for career analysis).
+- The AI Agent calls the Mock Data API internally to fetch user financial data, runs analysis using Gemini AI, and returns recommendations.
+- Both services can be run locally (different ports) or deployed as containers (Docker/Kubernetes).
 
 ## Services Overview
 
