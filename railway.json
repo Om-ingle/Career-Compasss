@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "cd ai-agent && python main.py",
+    "healthcheckPath": "/health"
+  }
+}

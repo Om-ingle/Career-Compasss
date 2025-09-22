@@ -1,0 +1,101 @@
+# Alternative GKE Cost Optimization Strategy
+# This approach uses manual scaling and smaller resources
+
+# 1. Scale down deployments manually during low usage
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-data-api
+spec:
+  replicas: 1  # Keep at 1 replica (minimum for HPA)
+  selector:
+    matchLabels:
+      app: mock-data-api
+  template:
+    metadata:
+      labels:
+        app: mock-data-api
+    spec:
+      containers:
+      - name: mock-data-api
+        image: gcr.io/careercompass-prototype/mock-data-api:v1
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"      # Minimal memory
+            cpu: "50m"          # Minimal CPU
+          limits:
+            memory: "128Mi"     # Small limit
+            cpu: "100m"         # Small limit
+        # Add startup probe to handle cold starts
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-agent
+spec:
+  replicas: 1  # Keep at 1 replica (minimum for HPA)
+  selector:
+    matchLabels:
+      app: ai-agent
+  template:
+    metadata:
+      labels:
+        app: ai-agent
+    spec:
+      containers:
+      - name: ai-agent
+        image: gcr.io/careercompass-prototype/ai-agent:v2
+        ports:
+        - containerPort: 8080
+        env:
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gemini-secret
+              key: api-key
+        resources:
+          requests:
+            memory: "128Mi"     # Minimal memory
+            cpu: "100m"         # Minimal CPU
+          limits:
+            memory: "256Mi"     # Small limit
+            cpu: "200m"         # Small limit
+        # Add startup probe to handle cold starts
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          failureThreshold: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5

@@ -1,0 +1,121 @@
+# Mock Data API Service - Cost Optimized
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-data-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-data-api
+  template:
+    metadata:
+      labels:
+        app: mock-data-api
+    spec:
+      containers:
+      - name: mock-data-api
+        image: gcr.io/careercompass-prototype/mock-data-api:v1
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"      # Reduced from 128Mi
+            cpu: "50m"          # Reduced from 100m
+          limits:
+            memory: "128Mi"     # Reduced from 256Mi
+            cpu: "100m"         # Reduced from 200m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-data-api-service
+spec:
+  selector:
+    app: mock-data-api
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+# AI Agent Service - Cost Optimized
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-agent
+  template:
+    metadata:
+      labels:
+        app: ai-agent
+    spec:
+      containers:
+      - name: ai-agent
+        image: gcr.io/careercompass-prototype/ai-agent:v2
+        ports:
+        - containerPort: 8080
+        env:
+        - name: GEMINI_API_KEY
+          value: "GEMINI_API_KEY"  # Replace with your actual key
+        resources:
+          requests:
+            memory: "128Mi"      # Reduced from 256Mi
+            cpu: "100m"          # Reduced from 200m
+          limits:
+            memory: "256Mi"      # Reduced from 512Mi
+            cpu: "200m"          # Reduced from 400m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-agent-service
+spec:
+  selector:
+    app: ai-agent
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: LoadBalancer  # This exposes the service to the internet
+---
+# Cost Optimization: Horizontal Pod Autoscaler (Fixed for GKE)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mock-data-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mock-data-api
+  minReplicas: 1        # Minimum 1 replica (GKE requirement)
+  maxReplicas: 2        # Limit max replicas
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-agent-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-agent
+  minReplicas: 1        # Minimum 1 replica (GKE requirement)
+  maxReplicas: 2        # Limit max replicas
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
