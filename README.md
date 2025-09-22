@@ -22,24 +22,7 @@ careercompass-services/
 ├── start-local.ps1          # PowerShell script to run both services locally
 └── FREE-DEPLOYMENT-GUIDE.md # Free deployment instructions for cloud providers
 ```
-## 🏗️ System Architecture
 
-```mermaid
-flowchart LR
-    subgraph User
-        A[User (Frontend UI or Test Dashboard)]
-    end
-    subgraph Backend
-        B[AI Agent Service<br/>(Python FastAPI)]
-        C[Mock Data API<br/>(Node.js Express)]
-    end
-
-    A -- "GET /api/users, /api/users/:id/financial-data" --> C
-    A -- "POST /api/analyze-career" --> B
-    B -- "GET /api/users/:id/financial-data" --> C
-    B -- "Career Recommendation (AI/Gemini)" --> A
-    C -- "Financial Data" --> B
-```
 **Description:**
 - The user (through a frontend or test dashboard) interacts with both the Mock Data API (for test user/financial data) and the AI Agent (for career analysis).
 - The AI Agent calls the Mock Data API internally to fetch user financial data, runs analysis using Gemini AI, and returns recommendations.
